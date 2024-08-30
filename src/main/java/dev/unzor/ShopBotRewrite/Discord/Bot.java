@@ -38,9 +38,28 @@ public class Bot {
                         .addOption(OptionType.NUMBER, "quantity", "Quantity of items you have")
                         .addOption(OptionType.STRING, "description", "Description of the item")
                         .addOption(OptionType.STRING, "color", "Color of the embed"),
-                Commands.message("Disable item"),
-                Commands.message("Enable item"),
+                Commands.slash("creatediscount", "Creates a discount")
+                        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_CHANNEL))
+                        .setGuildOnly(true)
+                        .addOption(OptionType.STRING, "id", "Id of the discount. For example: 20off", true)
+                        .addOption(OptionType.STRING, "discountvalue", "Discount value", true)
+                        .addOption(OptionType.STRING, "usagelimit", "Usage limit (unlimited by default)", false)
+                        .addOption(OptionType.BOOLEAN, "active", "Is active (true by default)"),
+                Commands.slash("removediscount", "Removes a discount")
+                        .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_CHANNEL))
+                        .setGuildOnly(true)
+                        .addOption(OptionType.STRING, "id", "Id of the discount. For example: 20off", true),
+                Commands.slash("adddiscount", "Adds a discount")
+                        .addOption(OptionType.STRING, "id", "Id of the discount. For example: 20off", true),
+                Commands.slash("getdiscountlist", "Gets a list of all the discounts")
+                         .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_CHANNEL))
+                         .setGuildOnly(true),
+                Commands.message("Disable item")
+                                .setGuildOnly(true),
+                Commands.message("Enable item")
+                                .setGuildOnly(true),
                 Commands.message("Edit Quantity")
+                                .setGuildOnly(true)
         ).queue();
         return jda;
     }

@@ -1,15 +1,14 @@
 package dev.unzor.ShopBotRewrite.Discord;
 
 import dev.unzor.ShopBotRewrite.Constants;
-import dev.unzor.ShopBotRewrite.Discord.Commands.AddItemCommand;
-import dev.unzor.ShopBotRewrite.Discord.Commands.PingCommand;
+import dev.unzor.ShopBotRewrite.Discord.Commands.*;
 import dev.unzor.ShopBotRewrite.Discord.SQLiteUtil.CartUtil;
 import dev.unzor.ShopBotRewrite.Discord.SQLiteUtil.ItemManager;
 import dev.unzor.ShopBotRewrite.Discord.SQLiteUtil.TicketUtil;
 import dev.unzor.ShopBotRewrite.Main;
+import dev.unzor.ShopBotRewrite.Utils.EmbedUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -18,10 +17,9 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.managers.PermOverrideManager;
-import net.dv8tion.jda.api.requests.restaction.PermissionOverrideAction;
 
 import java.awt.*;
+import java.text.DecimalFormat;
 import java.util.concurrent.TimeUnit;
 
 public class Listener extends ListenerAdapter {
@@ -31,6 +29,10 @@ public class Listener extends ListenerAdapter {
         switch (event.getName()) {
             case "ping" -> PingCommand.ping(event);
             case "additem" -> AddItemCommand.addItem(event);
+            case "creatediscount" -> CreateDiscountCommand.createDiscount(event);
+            case "removediscount" -> RemoveDiscountCommand.removeDiscount(event);
+            case "adddiscount" -> AddDiscountCommand.addDiscount(event);
+            case "getdiscountlist" -> GetDiscuntListCommand.getDiscountList(event);
         }
     }
 
@@ -41,20 +43,21 @@ public class Listener extends ListenerAdapter {
         switch (event.getButton().getId()) {
             case "addtocart" -> {
                 CartUtil.addItemToCart(event.getMember().getId().toString(), ItemManager.getItemById(event.getMessage().getId()));
-                CartUtil.createTicket(event.getMember().getId());
+                CartUtil.createTicket(event.getMember().getId(), null);
                 event.deferReply(true).queue(hook ->
                         hook.deleteOriginal().queue()
                 );
             }
             case "removefromcart" -> {
                 CartUtil.removeItemFromCart(event.getMember().getId().toString(), ItemManager.getItemById(event.getMessage().getId()));
-                CartUtil.createTicket(event.getMember().getId());
+                CartUtil.createTicket(event.getMember().getId(), null);
                 event.deferReply(true).queue(hook ->
                         hook.deleteOriginal().queue()
                 );
             }
             case "createticket" -> {
                 TicketUtil.createTicket(event.getUser());
+                EmbedUtil.log("Ticket created", "Ticket created for " + Main.jda.getUserById(event.getUser().getId()).getAsTag(), Color.GREEN);
                 event.deferReply(true).queue(hook ->
                         hook.deleteOriginal().queue()
                 );
@@ -88,7 +91,7 @@ public class Listener extends ListenerAdapter {
                     return;
                 }
                 channel.getManager().setName("✅-" + channel.getName()).queue();
-
+                EmbedUtil.log("Ticket marked as done", "Ticket marked as done for " + event.getUser().getName(), Color.GREEN);
                 event.reply("Marked as done").setEphemeral(true).queue();
             }
             case "delete" -> {
@@ -109,17 +112,18 @@ public class Listener extends ListenerAdapter {
             }
 
             case "deletecart" -> {
+                EmbedUtil.log("Cart deleted", "Cart deleted for " + event.getUser().getName(), Color.RED);
                 CartUtil.deleteCart(event.getUser());
                 event.reply("Cart deleted").queue();
             }
             case "deleteticket" -> {
+                EmbedUtil.log("Ticket deleted", "Ticket deleted for " + event.getUser().getName(), Color.RED);
                 event.reply("The ticket will be deleted in 5 seconds")
                         .queue(e -> e.getInteraction().getChannel().delete().queueAfter(5, TimeUnit.SECONDS));
             }
             case "cancelticketdelete" -> {
                 event.reply("Ticket deletion cancelled").setEphemeral(true).queue();
             }
-
         }
 
     }

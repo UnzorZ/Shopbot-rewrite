@@ -7,6 +7,8 @@ import dev.unzor.ShopBotRewrite.Utils.EmbedUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -72,12 +74,24 @@ public class TicketUtil {
                                             "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
                                     embed2.setColor(ColorUtils.getRandomColor());
 
+                                    EmbedBuilder embed3 = new EmbedBuilder();
+                                    embed3.setTitle("Pay with Crypto");
+                                    embed3.setDescription("You can pay with cryptocurrency using the following adresses:");
+                                    embed3.addField("BTC", "bc1qz0pxla755x6jwe8r9ey7c5c22zceuhav97m85j", false);
+                                    embed3.addField("ETH", "0x97dc3025B39D1C3d6371E38B34009c43D47D89FE", false);
+                                    embed3.addField("LTC", "LQXH5GWQ2WWQ4oibwWsRtanVK8d9rRAGLT", false);
+                                    embed3.addField("USDT", "0x97dc3025B39D1C3d6371E38B34009c43D47D89FE", false);
+                                    embed3.addField("XMR", "45tK3jdbaoxTdLuAroH114MLRReCfVGBL6GpkrVQuEuqRGzMtAsjYPPLmu2BDXpieo7zxFvLhGNee3cR4krkCMpT9EUhE61", false);
+                                    embed3.addField("SOL", "2xb8V7piHLVqyxUEJ8kDh1E1dw3uB245jXLUMhb2eUos", false);
+                                    embed3.setColor(ColorUtils.getRandomColor());
+
                                     channel.sendMessageEmbeds(embed.build()).queue();
                                     channel.sendMessageEmbeds(embed2.build()).addActionRow(
                                             Button.success("done", "Done").withEmoji(Emoji.fromUnicode("U+2705")),
                                             Button.danger("delete", "Delete").withEmoji(Emoji.fromUnicode("U+1F4A3")),
                                             Button.secondary("markasap", "Mark as ASAP").withEmoji(Emoji.fromUnicode("U+1F4EC"))
                                     ).queue(pm -> user.openPrivateChannel().queue(pm1 -> pm1.sendMessage("Ticket created").queue()));
+                                    channel.sendMessageEmbeds(embed3.build()).queue();
                                 });
                     } else {
                         EmbedBuilder embed = new EmbedBuilder();

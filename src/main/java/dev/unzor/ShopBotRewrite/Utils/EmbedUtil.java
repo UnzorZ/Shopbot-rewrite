@@ -25,4 +25,18 @@ public class EmbedUtil {
     public static void sendEmbedToOwner(EmbedBuilder embed) {
         Main.jda.getUserById(Constants.OwnerID).openPrivateChannel().queue(channel -> channel.sendMessageEmbeds(embed.build()).queue());
     }
+
+    public static void log(String title, String description, Color color) {
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.setTitle(title);
+            embed.setDescription(description);
+            embed.setColor(color);
+            embed.setTimestamp(java.time.Instant.now());
+            if (Main.jda.getGuildById(Constants.GUID).getTextChannelsByName("shopbotlogs", true).isEmpty()) {
+                System.out.println("Could not find the shopbotlogs channel");
+                errorEmbedInCommand("Could not find the shopbotlogs channel", "log");
+                return;
+            }
+            Main.jda.getGuildById(Constants.GUID).getTextChannelsByName("shopbotlogs", true).get(0).sendMessageEmbeds(embed.build()).queue();
+    }
 }

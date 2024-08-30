@@ -3,6 +3,7 @@ package dev.unzor.ShopBotRewrite.Discord.SQLiteUtil;
 import dev.unzor.ShopBotRewrite.Constants;
 import dev.unzor.ShopBotRewrite.Main;
 import dev.unzor.ShopBotRewrite.Utils.ColorUtils;
+import dev.unzor.ShopBotRewrite.Utils.EmbedUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -10,6 +11,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
+import java.awt.*;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,14 +52,11 @@ public class CartUtil {
 
     public static Map<String,String> ticketMap = new HashMap<>();
 
-    public static void createTicket(String UID){
+    public static void createTicket(String UID, Discount discount) {
         Map<Item, Integer> cart = getShoppingCart(UID);
         Guild guild = Main.jda.getGuildById(Constants.GUID);
 
         System.out.println("Creating ticket for " + UID);
-
-        for (int i=0; i<cart.size(); i++)
-            System.out.println(cart.get(i));
 
         assert guild != null;
         guild.retrieveMemberById(UID).queue(member -> {
@@ -66,23 +65,39 @@ public class CartUtil {
                 StringBuilder finalTicket = new StringBuilder();
                 double total = 0;
                 for(Map.Entry<Item ,Integer> entry : cart.entrySet()){
-                    message.append(entry.getKey().getName()).append(" x ").append(entry.getValue()).append(" = ").append(entry.getKey().getPrice() * entry.getValue()).append(Constants.Currency).append("\n");
-                    finalTicket.append(entry.getKey().getName()).append(" x ").append(entry.getValue()).append(" = ").append(entry.getKey().getPrice() * entry.getValue()).append(Constants.Currency).append("\n");
-                    total += entry.getKey().getPrice() * entry.getValue();
+                    if (entry.getValue() > 0){
+                        message.append(entry.getKey().getName()).append(" x ").append(entry.getValue()).append(" = ").append(entry.getKey().getPrice() * entry.getValue()).append(Constants.Currency).append("\n");
+                        finalTicket.append(entry.getKey().getName()).append(" x ").append(entry.getValue()).append(" = ").append(entry.getKey().getPrice() * entry.getValue()).append(Constants.Currency).append("\n");
+                        total += entry.getKey().getPrice() * entry.getValue();
+                    }
                 }
-                message.append("The total is: ").append(new DecimalFormat("#.##").format(total)).append(Constants.Currency).append("\n");
+                message.append("The total is: ").append(new DecimalFormat("#.##").format(calculateDiscount(total, discount))).append(Constants.Currency).append("\n");
                 message.append("--------------------------------------------------------------");
                 message.append("\n");
                 message.append("\n");
-                message.append("React with \uD83D\uDED2 to confirm the order and create a ticket \n React with ❌ to cancel the order");
+
+                if (discount != null){
+                    message.append("You have a discount of ").append(discount.get()).append("%\n");
+                    message.append("React with \uD83D\uDED2 to confirm the order and create a ticket \n Click ❌ to cancel the order.");
+                } else {
+                    message.append("React with \uD83D\uDED2 to confirm the order and create a ticket \n Click ❌ to cancel the order. If you have a discount code, use /adddiscount to use it");
+                }
+
                 EmbedBuilder ticket = new EmbedBuilder();
                 ticket.setTitle("Ticket for " + member.getEffectiveName());
                 ticket.setColor(ColorUtils.getRandomColor());
                 ticket.setDescription(message.toString());
-                finalTicket.append("The total is: ").append(new DecimalFormat("#.##").format(total)).append(Constants.Currency).append("\n");
+
+                if (discount != null){
+                    finalTicket.append("The total is: ").append(new DecimalFormat("#.##").format(calculateDiscount(total, discount))).append(Constants.Currency).append(" (Used Discount of " + discount.get() + "%)").append("\n");
+                } else {
+                    finalTicket.append("The total is: ").append(new DecimalFormat("#.##").format(calculateDiscount(total, discount))).append(Constants.Currency).append("\n");
+                }
+
                 finalTicket.append("▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
                 finalTicket.append("\n");
                 finalTicket.append("\n");
+
                 if(ticketMap.containsKey(UID)){
                     ticketMap.replace(UID, finalTicket.toString());
                 } else {
@@ -105,6 +120,11 @@ public class CartUtil {
                 }, error -> System.out.println("Failed to retrieve message history: " + error.getMessage()));
 
                 System.out.println("Ticket created for " + UID + ". Sending the ticket");
+
+                if (discount != null){
+                    SqlUtil.useDiscount(discount.getId());
+                }
+
                 privateChannel.sendMessageEmbeds(ticket.build()).addActionRow(
                         Button.success("createticket", "Create ticket").withEmoji(Emoji.fromUnicode("U+2705")),
                         Button.danger("deletecart", "Delete Cart").withEmoji(Emoji.fromUnicode("U+1F4A3"))
@@ -123,5 +143,12 @@ public class CartUtil {
             total = total + (entry.getKey().getPrice() * entry.getValue());
         }
         return total;
+    }
+
+    public static double calculateDiscount(double total, Discount discount){
+        if (discount == null){
+            return total;
+        }
+        return (total - (total * discount.get() / 100));
     }
 }
