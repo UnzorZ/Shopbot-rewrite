@@ -23,7 +23,6 @@ import java.text.DecimalFormat;
 import java.util.concurrent.TimeUnit;
 
 public class Listener extends ListenerAdapter {
-    private JDA jda = Main.jda;
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         switch (event.getName()) {

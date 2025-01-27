@@ -13,8 +13,8 @@ public class Main {
     public static void main(String[] args) {
         Constants.debug = false;
 
-        for (int i=0; i<args.length; i++) {
-            switch (args[i]) {
+        for (String arg : args) {
+            switch (arg) {
                 case "-debug" -> Constants.debug = true;
                 case "-update" -> Update.update(); //TODO (xD esto no se va a hacer)
             }

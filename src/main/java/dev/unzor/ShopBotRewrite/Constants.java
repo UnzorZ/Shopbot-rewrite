@@ -12,4 +12,5 @@ public class Constants {
     public static double MinPurchase = 5.0;
     public static boolean MentionRole = true;
     public static String paypallink = "";
+    public static String website = "";
 }
